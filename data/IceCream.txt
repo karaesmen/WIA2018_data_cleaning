@@ -1,0 +1,1 @@
+Person	Ice_cream_scoops	ToppingsJane	"1_vanilla,1_rasberry,1_chocolate"	"walnut,chocolate_sauce"Bernie	"2_vanilla,1_chocolate"	sprinklesHarry	"2_chocolate,1_mint"	sorbetSandy	"1_mango,1_vanilla"	chocolate_sauce

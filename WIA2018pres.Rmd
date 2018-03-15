@@ -1,0 +1,327 @@
+---
+title: "Data Cleaning and Manipulation with R"
+author: "R Introduction Workshop"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+  slidy_presentation:
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 7
+    incremental: yes
+    footer: "Ezgi Karaesmen, R-Ladies Columbus"
+    df_print: kable
+---
+
+```{r, echo = FALSE, message=FALSE, error=FALSE, warning=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE, error = FALSE, warning = FALSE, tidy = TRUE)
+set.seed(1014)
+options(dplyr.print_max = 5)
+library(knitr)
+library(kableExtra)
+```
+
+# Hi I'm Ezgi! {.bigger}
+
+PhD student at OSU in College of Pharmacy and co-organizer of the R-Ladies Columbus chapter.       
+You can find out more about R-Ladies:       
+**Meetup.com:** meetup.com/RLadies-Columbus/    
+**Twitter:** @RLadiesColumbus      
+    
+<center><img src="./fig/rladies_desc.png" height="500px" /></center>
+
+# R for Data Science - Data Science
+
+What is data science?
+*A buzzword with a blurry definition...*
+
+- Anything you do with **(Big) data** to extract some information (about a specific field)? 
+- A typical data science project workflow:
+    <center><img src="./fig/data-science.png" height="300px" /></center>
+
+# R for Data Science - Big Data
+What is big data?  
+*Another buzzword with a blurry definition?*
+
+<left><img src="./fig/bigdata.jpeg" height="300px" /></left>
+
+- Or with Dan Ariely's often cited words:   
+    *Big data is like teenage sex;*     
+        - **everyone** talks about it  
+        - **nobody** really knows how to do it,   
+        - **everyone** thinks **everyone else** is doing it,  
+        - so **everyone** **claims** they are doing it.   
+
+# R for Data Science - Big Data
+- "Big data typically refers to data on the scale of terabytes (10 to the 12th power) and petabytes (10 to the 15th power)." - `datascience@berkeley`
+- A petabyte is a million gigabytes (GB).
+
+- A better description:   
+    "In traditional analysis, the development of a statistical model takes more time than the calculation by the computer. When it comes to Big Data this proportion is turned upside down. Big Data comes into play when the CPU time for the calculation takes longer than the cognitive process of designing a model." - Hadley Wickham
+    
+- R can easily handle data sizes up to 100s of MBs. And additional R packages can help with sizes up to 10s of GBs, or with even larger data sizes depending on the "big data problem".
+
+
+# R for Data Science - Big Data
+Is your *"big data"* actually big data?
+
+- *Small data in disguise:*     
+    Although the complete data might be big, the data needed to answer the question of interest can be small that fits in memory.    
+
+- *A large number of small data :*      
+    Although the data might be big, it might comprise of many small data problems. Each individual problem might fit in memory, but you have millions of them. In that case systems like Hadoop or Spark can help and R packages like `sparklyr`, `rhipe`, and `ddr` make this process easy.
+
+# R for Data Science - Why R is so awesome
+
+> R offers great tools for the entire Data Science process    
+
+<center><img src="./fig/data_science_wR.png" height="500px" /></center>
+
+- It's all open source!!
+
+# R for Data Science - Why R is so awesome
+
+And other cool things like animated plots:   
+<center><img src="./fig/gganimate_exp.gif" height="500px" /></center>  
+
+# R for Data Science - Why R is so awesome
+Or interactive plots:
+```{r, eval=T, echo=F}
+library(ggplot2)
+library(plotly)
+
+p <- iris %>% 
+    ggplot(aes(x=Sepal.Length, y=Sepal.Width, color=Species)) +
+    geom_point() +
+    geom_smooth()
+
+ggplotly(p)    
+```
+
+# R for Data Science - Why R is so awesome
+
+R community #rstats on Twitter
+
+<center><img src="./fig/01_r_community.jpg" height="500px" /></center>
+
+# R for Data Science - The Book and `tidyverse` {.bigger}
+
+- Online book [R for Data Science](http://r4ds.had.co.nz/index.html)
+
+- [`tidyverse`](https://www.tidyverse.org/) a neat universe of data tools.
+
+- [The tidy tools manifesto](http://tidyverse.tidyverse.org/articles/manifesto.html)
+
+- <center><img src="./fig/data-science-wrangle.png" height="300px" /></center>
+
+# Tidying and manipulating {.bigger}
+
+In most cases, data doesn't come clean (pun intended)...
+Requires cleaning before any modelling or visualization.
+
+```
+“Happy families are all alike; 
+every unhappy family is unhappy in its own way.” 
+–– Leo Tolstoy
+```
+```
+“Tidy datasets are all alike, 
+but every messy dataset is messy in its own way.” 
+–– Hadley Wickham
+```
+
+Luckily there is a nice set of packages offering help with messy data sets
+<center><img src="./fig/logos_tidyverse_tidyr_dplyr.png" height="200px" /></center>
+
+# What is tidy data? {.bigger}
+
+- Data that is easy to model, visualise and
+aggregate (i.e. works well with other R functions such as `lm` and `ggplot`)
+
+<!-- - Data that is contained in a `data.frame` or `data.table`     -->
+<!--   (some analyses may require other `R` objects specific to the package --     -->
+<!--   but that's a whole nother story...)  -->
+- Tidy data is data where:
+    - **observations** are the **rows** of a `data.frame`
+    - **variables** are the **columns** of a `data.frame`
+    - **values** are cells of a `data.frame`
+
+# Is this data tidy? {.bigger}
+
+```{r, eval=T, echo=F}
+library(knitr)
+library(kableExtra)
+
+preg.tbl <- read.table(text= "Pregnant,Not.Pregnant
+0,5
+1,4", header=T, sep=",", row.names=c("Male", "Female"))
+
+preg.tbl %>%
+kable("html")
+```
+
+- What are the variables in this data?
+- What are rows? 
+- What are columns?
+
+# Answer: This data can be tidier {.bigger}
+
+```{r, eval=T, echo=F}
+kable(preg.tbl)
+```
+
+- What are the variables in this data?        
+    `Sex`, `Pregnancy`, `n` 
+- What are rows?    
+    **Rows** are the **values of a variable**, not **observations**
+- What are columns?     
+    **Columns** are the **values of a variable**, not **variables** 
+
+#  A tidier version {.bigger}
+```{r, echo=FALSE}
+pregnancy.data <- read.table(text= "sex pregnant n
+male no 5
+male yes 0
+female no 4
+female yes 1", sep=" ", header=T)
+kable(pregnancy.data)
+```
+
+- **Rows** are **observations**
+- **Columns** are **variables**
+
+
+# Tidying messy datasets {.bigger}
+
+Real datasets usually come with the following problems that needs tidying:   
+
+- Column headers are values, not variable names.   
+
+- Multiple variables are stored in one column.   
+
+- Variables are stored in both rows and columns.   
+
+- Multiple types of observational units are stored in the same table.   
+
+- A single observational unit is stored in multiple tables.    
+
+- Now, let's look at some tools from `tidyverse` that can help with these issues, while going over some of the examples from the `dplyr` and `tidyr` vignettes.
+
+```{r}
+library(tidyverse)
+```
+
+
+# Column headers are values, not variable names - `pew` example
+
+Example dataset: `pew.csv`       
+It comes from a report produced by the Pew Research Center (which produces many reports that contain datasets in this format).    
+Explores the relationship between income and religion in the US.
+
+```{r}
+pew <- read_csv("data/pew.csv")
+head(pew)
+```
+
+- This dataset has three variables. What are they?
+- `religion`, `income` and `frequency`.       
+- To tidy it, we need to **gather** the non-variable columns into a two-column key-value pair. 
+- This action is often described as making a wide dataset long (or tall) or called "melting".
+
+- We can easiy **gather** the columns with the `gather()` function.    
+- `gather` has 4 main arguments:   
+    - `data`: The data frame to gather
+    - `key`: Name of the *key column*, which will contain the collapsed column names, In this case the column name for this *key column* would be `income`
+    - `value`: Name of the value column, which will populate the gathered values. In this case, it's `n`
+    - `specify the columns to gathered`: bare column names of the columns that will be collapsed. Here, it's every column except religion.
+
+```{r, echo=TRUE, eval=FALSE}
+gather(data=pew, key=income, value=n, -religion)
+```
+
+If we would use the pipe `%>%` same code would look like this:  
+
+```{r}
+pew %>%
+    gather(key=income, value=n, -religion) %>%
+    head
+```
+
+This form is tidy because each column represents a variable and each row represents an observation, which is in this case a demographic unit corresponding to a combination of `religion` and `income`.
+
+# Column headers are values, not variable names - `billboard`
+
+This format is also used to record regularly spaced observations over time.      
+
+Example dataset: `billboard.csv`        
+Billboard dataset shown below records the date a song first entered the billboard top 100 and the rank of the song in each week after that up to 75 weeks.     
+It has variables for `artist`, `track`, `date.entered`, `rank` and `week`, plus the columns from `wk1` to `wk75`.   
+This form of storage is not tidy, but it is useful for data entry. But not useful for plotting or modelling!
+
+```{r}
+billboard <- read_csv("data/billboard.csv")
+billboard[1:3, 1:10]
+```
+
+Again, to tidy this dataset, we first gather together all the `wk` columns. The column names give the `week` and the values are the `rank`s:
+
+```{r}
+billboard2 <- billboard %>% 
+  gather(week, rank, wk1:wk76, na.rm = TRUE)
+billboard2 %>% head
+```
+
+Here we use `na.rm` to drop any missing values from the gather columns. In this data, missing values represent weeks that the song wasn't in the charts, so can be safely dropped.
+
+In this case it's also nice to do a little cleaning, converting the week variable to a number, and figuring out the date corresponding to each week on the charts:
+
+```{r}
+billboard3 <- billboard2 %>%
+  mutate(
+    week = extract_numeric(week),
+    date = as.Date(date.entered) + 7 * (week - 1)) %>%
+  select(-date.entered)
+billboard3 %>% head
+```
+
+Finally, it's always a good idea to sort the data. We could do it by artist, track and week:
+
+```{r}
+billboard3 %>% arrange(artist, track, week)
+```
+
+Or by date and rank:
+
+```{r}
+billboard3 %>% arrange(date, rank)
+```
+
+# Multiple variables stored in one column
+
+After gathering columns, the key column is sometimes a combination of multiple underlying variable names.      
+
+Example dataset: `tb` (tuberculosis)
+From the World Health Organisation, and records the counts of confirmed tuberculosis cases by `country`, `year`, and demographic group.     
+The demographic groups are broken down by `sex` (m, f) and `age` (0-14, 15-25, 25-34, 35-44, 45-54, 55-64, unknown).
+
+```{r}
+tb <- read_csv("data/tb.csv")
+tb
+```
+
+First we gather up the non-variable columns:
+
+```{r}
+tb2 <- tb %>% 
+  gather(demo, n, -iso2, -year, na.rm = TRUE)
+tb2
+```
+
+Column headers in this format are often separated by a non-alphanumeric character (e.g. `.`, `-`, `_`, `:`), or have a fixed width format, like in this dataset. `separate()` makes it easy to split a compound variables into individual variables. You can either pass it a regular expression to split on (the default is to split on non-alphanumeric columns), or a vector of character positions. In this case we want to split after the first character:
+
+```{r}
+tb3 <- tb2 %>% 
+  separate(demo, c("sex", "age"), 1)
+tb3
+```
+
+Storing the values in this form resolves a problem in the original data. We want to compare rates, not counts, which means we need to know the population. In the original format, there is no easy way to add a population variable. It has to be stored in a separate table, which makes it hard to correctly match populations to counts. In tidy form, adding variables for population and rate is easy because they're just additional columns.
