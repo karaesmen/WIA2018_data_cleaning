@@ -1,6 +1,6 @@
 ---
 title: "Data Cleaning and Manipulation with R"
-author: "R Introduction Workshop"
+author: "Women in Analytics 2018"
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
   slidy_presentation:
